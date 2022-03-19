@@ -1,7 +1,7 @@
 version: 0.2
 env:
   variables:
-    JOB_NAME: sharaku-scalabuff
+    JOB_NAME: sharaku-scalapb
 
 phases:
   build:

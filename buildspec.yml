@@ -1,0 +1,26 @@
+version: 0.2
+env:
+  variables:
+    JOB_NAME: sharaku-scalabuff
+
+phases:
+  build:
+    commands:
+      - |
+        echo Webhook trigger: "${CODEBUILD_WEBHOOK_TRIGGER:-}"
+        echo Source version: "${CODEBUILD_SOURCE_VERSION:-}"
+        echo Build number: "${CODEBUILD_BUILD_NUMBER:-}"
+        
+        if [[ "${CODEBUILD_WEBHOOK_TRIGGER:-}" = "branch/sharaku-0.4.x" || "${FORCE_REBUILD:-}" = "true" ]]; then
+          ./scripts/codebuild.master.sh
+        elif [[ "${CODEBUILD_SOURCE_VERSION:-}" = "pr/"* ]]; then
+          ./scripts/codebuild.pr.sh
+        else
+          echo "Skipping a build because the branch 1) is not master and 2) has no pull-request."
+        fi
+
+cache:
+  paths:
+    - '/root/.ivy2/**/*'
+    - '/root/.m2/**/*'
+    - '/root/.sbt/**/*'

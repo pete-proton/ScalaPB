@@ -21,3 +21,5 @@ project/plugins/project/
 e2e/project/project/Version.scala
 e2e/project/Version.scala
 atlassian-ide-plugin.xml
+
+.bsp

@@ -1,3 +1,4 @@
+import GenTypes.ProtoType
 import GenUtils._
 import com.trueaccord.scalapb.Scalapb.ScalaPbOptions
 import org.scalacheck.Gen
@@ -105,7 +106,7 @@ object GraphGen {
           fieldTags <- genListOfDistinctPositiveNumbers(fieldCount)
           fieldTypes <- listOfN(fieldCount, GenTypes.genFieldType(state)).map(_.toSeq)
           (oneOfGroupings, state) <- genOneOfs(fieldCount, state)
-          fieldOptions <- Gen.sequence[Seq, GenTypes.FieldOptions](fieldTypes.map(GenTypes.genOptionsForField(myId, _)))
+          fieldOptions <- Gen.sequence[Seq[ProtoType], GenTypes.FieldOptions](fieldTypes.map(GenTypes.genOptionsForField(myId, _)))
           fields = (fieldNames zip oneOfGroupings) zip ((fieldTypes, fieldOptions, fieldTags).zipped).toList map {
             case ((n, oog), (t, opts, tag)) => FieldNode(n, t, opts, oog, tag)
           }

@@ -1,10 +1,6 @@
-import SonatypeKeys._
-import sbtrelease._
-import ReleaseStateTransformations._
+import ohnosequences.sbt.SbtS3Resolver._
 
-sonatypeSettings
-
-scalaVersion in ThisBuild := "2.11.7"
+scalaVersion in ThisBuild := "2.12.15"
 
 scalacOptions in ThisBuild ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
@@ -20,11 +16,7 @@ javacOptions in ThisBuild ++= {
   }
 }
 
-crossScalaVersions in ThisBuild := Seq("2.10.5", "2.11.7", "2.12.0-M1")
-
-organization in ThisBuild := "com.trueaccord.scalapb"
-
-profileName := "com.trueaccord"
+organization in ThisBuild := "jp.co.cyberagent"
 
 resolvers in ThisBuild +=
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -51,16 +43,21 @@ pomExtra in ThisBuild := {
   </developers>
 }
 
-lazy val projectReleaseSettings = releaseSettings ++ Seq(
-  ReleaseKeys.crossBuild := true,
-  ReleaseKeys.publishArtifactsAction := PgpKeys.publishSigned.value
+lazy val projectReleaseSettings = Seq(
+  publishMavenStyle := false,
+  publishArtifact in(Compile, packageDoc) := false,
+  publishTo := {
+    if (isSnapshot.value)
+      Some(s3resolver.value("Snapshots resolver", s3("sharaku-ivy")).withIvyPatterns)
+    else
+      Some(s3resolver.value("Releases resolver", s3("sharaku-ivy")).withIvyPatterns)
+  }
 )
 
 lazy val root =
   project.in(file("."))
     .settings(
-      publishArtifact := false,
-      aggregate in sonatypeRelease := false
+      publishArtifact := false
     ).settings(projectReleaseSettings: _*).aggregate(runtime, compilerPlugin, proptest, scalapbc)
 
 lazy val runtime = project.in(file("scalapb-runtime")).settings(
@@ -92,7 +89,7 @@ lazy val proptest = project.in(file("proptest"))
 lazy val ShortTest = config("short") extend(Test)
 
 // For e2e test
-val sbtPluginVersion = "0.4.18"
+val sbtPluginVersion = "0.5.43"
 
 def genVersionFile(out: File, version: String): File = {
   out.mkdirs()
@@ -114,11 +111,10 @@ def genVersionFile(out: File, version: String): File = {
 val createVersionFile = TaskKey[Unit](
   "create-version-file", "Creates a file with the project version to be used by e2e.")
 
-createVersionFile <<= (streams, baseDirectory, version in Compile) map {
-  (streams, baseDirectory, version) =>
-    val f1 = genVersionFile(baseDirectory / "e2e/project/project", version)
-    streams.log.info(s"Created $f1")
-    val f2 = genVersionFile(baseDirectory / "e2e/project/", version)
-    streams.log.info(s"Created $f2")
+createVersionFile := {
+    val f1 = genVersionFile(baseDirectory.value / "e2e/project/project", version.value)
+    streams.value.log.info(s"Created $f1")
+    val f2 = genVersionFile(baseDirectory.value / "e2e/project/", version.value)
+    streams.value.log.info(s"Created $f2")
 }
 

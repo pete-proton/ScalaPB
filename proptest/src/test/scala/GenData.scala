@@ -1,5 +1,6 @@
 import com.trueaccord.scalapb.compiler.FunctionalPrinter
 import org.scalacheck.Gen
+import scala.collection.JavaConversions._
 
 object GenData {
 
@@ -80,7 +81,9 @@ object GenData {
       case Some(field) => genFieldValueByOptions(field)
     })
 
-    Gen.sequence[Seq, Seq[(String, ProtoValue)]](fieldGens ++ oneofGens).map(s => MessageValue(s.flatten))
+    val x: Seq[Gen[Seq[(String, ProtoValue)]]] = fieldGens ++ oneofGens
+
+    Gen.sequence(x).map(s => MessageValue(s.flatten))
   }
 
   def genMessageValueInstance(rootNode: RootNode): Gen[(MessageNode, MessageValue)] = for {

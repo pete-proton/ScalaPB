@@ -1,2 +1,3 @@
-addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.8.5")
+resolvers += Resolver.jcenterRepo
 
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.19.0")
